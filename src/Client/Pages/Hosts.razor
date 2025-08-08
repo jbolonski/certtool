@@ -1,0 +1,58 @@
+@page "/hosts"
+@using Shared
+@inject HttpClient Http
+
+<h3>Hosts</h3>
+
+<div class="add-host">
+    <input placeholder="host.example.com" @bind="newHostName" />
+    <button @onclick="AddHost" disabled="@(string.IsNullOrWhiteSpace(newHostName))">Add</button>
+</div>
+
+@if (hosts == null)
+{
+    <p>Loading...</p>
+}
+else if (hosts.Count == 0)
+{
+    <p>No hosts configured.</p>
+}
+else
+{
+    <ul>
+        @foreach (var h in hosts)
+        {
+            <li>@h.HostName <button @onclick="() => DeleteHost(h.Id)">Delete</button></li>
+        }
+    </ul>
+}
+
+@code {
+    private List<HostDto>? hosts;
+    private string? newHostName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
+    }
+
+    private async Task AddHost()
+    {
+        if (string.IsNullOrWhiteSpace(newHostName)) return;
+        var resp = await Http.PostAsJsonAsync("api/hosts", new HostDto(0, newHostName.Trim()));
+        if (resp.IsSuccessStatusCode)
+        {
+            hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
+            newHostName = string.Empty;
+        }
+    }
+
+    private async Task DeleteHost(long id)
+    {
+        var resp = await Http.DeleteAsync($"api/hosts/{id}");
+        if (resp.IsSuccessStatusCode)
+        {
+            hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
+        }
+    }
+}

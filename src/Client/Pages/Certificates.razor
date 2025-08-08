@@ -1,0 +1,49 @@
+@page "/certificates"
+@using Shared
+@inject HttpClient Http
+
+<h3>Certificate Expirations</h3>
+
+@if (certs == null)
+{
+    <p>Loading...</p>
+}
+else if (certs.Count == 0)
+{
+    <p>No certificates found.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Host</th>
+                <th>Serial</th>
+                <th>Expiration (UTC)</th>
+                <th>Days Left</th>
+                <th>Retrieved</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in certs.OrderBy(c => c.DaysUntilExpiration))
+        {
+            <tr class="@(c.DaysUntilExpiration <= 15 ? "crit" : c.DaysUntilExpiration <= 30 ? "warn" : "ok")">
+                <td>@c.HostName</td>
+                <td>@c.SerialNumber</td>
+                <td>@c.ExpirationUtc.ToString("u")</td>
+                <td>@c.DaysUntilExpiration</td>
+                <td>@c.RetrievedAtUtc.ToString("u")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<CertificateDto>? certs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        certs = await Http.GetFromJsonAsync<List<CertificateDto>>("api/certificates");
+    }
+}

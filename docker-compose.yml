@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mysql:8.0.28
+    container_name: certmon-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-cert_monitor}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-change_me_root_local_only}
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --sql_mode=STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION
+      - --default_authentication_plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - certnet
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: certmon-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-cert_monitor}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SSL_MODE: ${DB_SSL_MODE:-Preferred}
+    ports:
+      - "5000:8080"
+    volumes:
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    restart: unless-stopped
+    networks:
+      - certnet
+
+volumes:
+  db_data:
+
+networks:
+  certnet:
+    driver: bridge
