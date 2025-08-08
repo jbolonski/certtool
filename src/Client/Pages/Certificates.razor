@@ -2,7 +2,9 @@
 @using Shared
 @inject HttpClient Http
 
+
 <h3>Certificate Expirations</h3>
+<button @onclick="ManualRefresh" disabled="@refreshing">@((refreshing ? "Refreshing..." : "Refresh"))</button>
 
 @if (certs == null)
 {
@@ -41,9 +43,31 @@ else
 
 @code {
     private List<CertificateDto>? certs;
+    private bool refreshing = false;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadCerts();
+    }
+
+    private async Task LoadCerts()
+    {
         certs = await Http.GetFromJsonAsync<List<CertificateDto>>("api/certificates");
+    }
+
+    private async Task ManualRefresh()
+    {
+        refreshing = true;
+        StateHasChanged();
+        try
+        {
+            var resp = await Http.PostAsync("api/certificates/refresh", null);
+            resp.EnsureSuccessStatusCode();
+            await LoadCerts();
+        }
+        finally
+        {
+            refreshing = false;
+        }
     }
 }

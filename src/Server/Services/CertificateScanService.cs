@@ -39,6 +39,10 @@ public class CertificateScanService : BackgroundService
             if (result is { } r)
             {
                 var (serial, notAfterUtc) = r;
+                // FR008: Remove any existing cert record for this host
+                var old = await db.Certificates.Where(c => c.HostId == h.Id).ToListAsync(ct);
+                if (old.Count > 0)
+                    db.Certificates.RemoveRange(old);
                 db.Certificates.Add(new Entities.CertificateRecord
                 {
                     HostId = h.Id,
