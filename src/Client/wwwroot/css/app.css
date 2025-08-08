@@ -1,0 +1,13 @@
+/*
+  Add or update this file in src/Client/wwwroot/css/app.css or similar location and ensure it is referenced in MainLayout.razor or index.html.
+*/
+
+tr.crit {
+    background-color: #ffcccc; /* light red */
+}
+tr.warn {
+    background-color: #fff7cc; /* light yellow */
+}
+tr.ok {
+    background-color: #eaffea; /* light green */
+}

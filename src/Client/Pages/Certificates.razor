@@ -21,7 +21,7 @@ else
             <tr>
                 <th>Host</th>
                 <th>Serial</th>
-                <th>Expiration (UTC)</th>
+                <th>Expiration</th>
                 <th>Days Left</th>
                 <th>Retrieved</th>
             </tr>
@@ -29,12 +29,12 @@ else
         <tbody>
         @foreach (var c in certs.OrderBy(c => c.DaysUntilExpiration))
         {
-            <tr class="@(c.DaysUntilExpiration <= 15 ? "crit" : c.DaysUntilExpiration <= 30 ? "warn" : "ok")">
+            <tr class="@(c.DaysUntilExpiration <= 30 ? (c.DaysUntilExpiration <= 15 ? "crit" : "warn") : "ok")">
                 <td>@c.HostName</td>
                 <td>@c.SerialNumber</td>
-                <td>@c.ExpirationUtc.ToString("u")</td>
+                <td>@c.ExpirationUtc.ToString("MM/dd/yyyy")</td>
                 <td>@c.DaysUntilExpiration</td>
-                <td>@c.RetrievedAtUtc.ToString("u")</td>
+                <td>@c.RetrievedAtUtc.ToString("MM/dd/yyyy")</td>
             </tr>
         }
         </tbody>
