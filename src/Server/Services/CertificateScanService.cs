@@ -8,17 +8,19 @@ public class CertificateScanService : BackgroundService
     private readonly IServiceProvider _provider;
     private readonly ILogger<CertificateScanService> _logger;
     private readonly TimeSpan _interval = TimeSpan.FromHours(24);
+    private readonly ScanScheduleState _schedule;
 
-    public CertificateScanService(IServiceProvider provider, ILogger<CertificateScanService> logger)
+    public CertificateScanService(IServiceProvider provider, ILogger<CertificateScanService> logger, ScanScheduleState schedule)
     {
         _provider = provider;
         _logger = logger;
+        _schedule = schedule;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Certificate scan service starting");
-        await ScanOnce(stoppingToken);
+    _logger.LogInformation("Certificate scan service starting");
+    await ScanOnce(stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
             await Task.Delay(_interval, stoppingToken);
@@ -28,6 +30,7 @@ public class CertificateScanService : BackgroundService
 
     private async Task ScanOnce(CancellationToken ct)
     {
+        var started = DateTime.UtcNow;
         using var scope = _provider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var fetcher = scope.ServiceProvider.GetRequiredService<CertificateFetcher>();
@@ -59,6 +62,7 @@ public class CertificateScanService : BackgroundService
                 h.IsReachable = false; // keep existing cert data if any; host just unreachable now
             }
         }
-        await db.SaveChangesAsync(ct);
+    await db.SaveChangesAsync(ct);
+    _schedule.UpdateOnRun(started);
     }
 }

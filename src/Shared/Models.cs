@@ -10,3 +10,4 @@ public record StatsDto(
 	int UnreachableHosts,
 	DateTime? LastScanUtc,
 	int? DaysSinceLastScan);
+public record ScanScheduleDto(DateTime? LastRunUtc, DateTime? NextRunUtc, int IntervalHours);

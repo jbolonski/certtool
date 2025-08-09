@@ -14,6 +14,7 @@ var serverVersion = new MySqlServerVersion(new Version(8, 0, 28));
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseMySql(connStr, serverVersion));
 
+builder.Services.AddSingleton(new ScanScheduleState(24));
 builder.Services.AddScoped<CertificateFetcher>();
 builder.Services.AddHostedService<CertificateScanService>();
 

@@ -3,6 +3,16 @@
 @inject HttpClient Http
 
 <h3>Hosts</h3>
+@if (schedule != null)
+{
+    <p style="margin-top:-.4rem;font-size:.7rem;letter-spacing:.5px;color:var(--color-text-soft);">
+        Next scheduled scan: <strong>@(schedule.NextRunUtc?.ToString("MM/dd/yy HH:mm") ?? "–") UTC</strong>
+        @if (schedule.LastRunUtc.HasValue)
+        {
+            <span style="margin-left:.75rem;">(Last: @schedule.LastRunUtc?.ToString("MM/dd/yy HH:mm"))</span>
+        }
+    </p>
+}
 
 <div class="add-host">
     <input placeholder="host.example.com" @bind="newHostName" />
@@ -56,10 +66,12 @@ else
     private List<HostDto>? hosts;
     private string? newHostName;
     private bool showOnlyUnreachable;
+    private ScanScheduleDto? schedule;
 
     protected override async Task OnInitializedAsync()
     {
-        hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
+    hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
+    schedule = await Http.GetFromJsonAsync<ScanScheduleDto>("api/schedule");
     }
 
     private async Task AddHost()
