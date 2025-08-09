@@ -2,23 +2,59 @@
 
 ## Requirements
 
-The following table outlines the detailed functional requirements.
+The functional requirements are grouped by domain area for clarity.
 
-|Requirement ID | Description                         | User Story                                                    | Expected Behavor/Outcome |
-|---------------|-------------------------------------|---------------------------------------------------------------|--------------------------|
-|FR001          | Report of certificate expirations   | As a user, I want to be able to track certificate expirations | The system should provide a way for the user to see a list of certificates and their expiration dates|
-|FR002          | Manage list of hosts to monitor     | As a user, I want to be able to manage the list of hosts that I monitor for certificate expiration | The system should provide an admin page or mechanism for manage the list of hosts to monitor|
-|FR003          | Check the certficiates daily        | As a user, I want the certificates to be checked automatically on a daily basis | The system should schedule a task to automatically run through the list of hosts and retrieve the expiration information for the certificate |
-|FR004          | Certificate Details should be shown | As a user, I want to be able to see the following certificate details: host name, serial number, expiration date | The system should capture the certificate details daily and display them on a report |
-|FR005          | Reporting page should be tabular    | As a user, I want to see the certificate scan results in a table with the Certification name, serial number, expiration date, and days until expiring | The system should display the scan results in a reportable table with the appropriate headings. The host name and serial number can be in the same cell with the host name being the most dominate|
-|FR006          | Reporting table sorted by expiration| As a user, I want to have the results sorted by days until expiration from lowest to highest. | |
-|FR007          | Manual Refresh                      | As a user, I want to be able to click a button on the report page to manually check the certs | The system should provide a mechanism for the user to manually start a certificate expiration check on the hosts.|
-|FR008          | Keep only latest certificate check  | As a user, I only want to see the most recent certificate scan information. | The system should overwrite scan results for hosts and only show the most recent scan |
-|FR009          | Color code the results table  | As a user, I want to have quick way of see the criticality of an expiring certificate | The System should have highlighting based on how many days until it expires. If it is within 30 days it should be light red. If it is 31 to 60 days then it should be light yellow. The table should also show how many days intil expiration in the last column |
-|FR010         | Show the dates in a nicer format | As a user, I want to see the dates in a mm/dd/yyyy format | The system should format the dates to the mm/dd/yyyy format for better readability |
-|FR011         | Dark mode support                | As a user, I want to be able to switch to a dark mode for the app | The system should provide a toggle or automatic detection for dark mode, updating the color scheme for comfortable viewing in low-light environments |
-|FR012         | Remember dark/light mode         | As a user, I want the app to remember my dark or light mode preference | The system should persist the user's mode selection and restore it on reload |
-|FR013         | Dense tables                     | As a user, I want tables to be compact and information-dense | The system should use minimal row/cell padding for all tables |
-|FR014         | Clickable host links             | As a user, I want to click a host name to open its URL | The system should render host names as clickable links opening in a new tab |
-|FR015         | Alphabetical host sorting        | As a user, I want hosts to be listed alphabetically | The system should sort hosts by name in the management table |
-|FR016         | Auto fetch cert on host add      | As a user, I want a newly added host to immediately show its certificate info without waiting for the daily job | When a host is created the system should attempt an immediate certificate fetch (port 443). On success it stores/overwrites the current cert record; on failure the host is still created and a later manual/daily refresh can populate it |
+### A. Core Monitoring & Data Collection
+
+| ID | Description | User Story | Expected Behavior / Outcome |
+|----|-------------|------------|-----------------------------|
+|FR001| Report of certificate expirations | As a user, I want to be able to track certificate expirations | Provide a list of certificates and their expiration dates |
+|FR003| Check the certificates daily | As a user, I want the certificates to be checked automatically on a daily basis | A scheduled background job iterates all hosts and refreshes certificate + reachability data |
+|FR007| Manual Refresh | As a user, I want to manually check certs | User can trigger a refresh; updates cert data AND host reachability / timestamps |
+|FR008| Keep only latest certificate check | As a user, I only want to see the most recent certificate scan information | Overwrite prior certificate record per host with newest result |
+|FR016| Auto fetch cert on host add | As a user, I want immediate data for a newly added host | On host creation attempt immediate fetch (port 443), storing cert if successful |
+|FR019| Scans update reachability fields | As a user, I want host status current after any scan | All scan types set LastCheckedUtc, update IsReachable, set LastReachableUtc on success |
+
+### B. Host Management
+
+| ID | Description | User Story | Expected Behavior / Outcome |
+|----|-------------|------------|-----------------------------|
+|FR002| Manage list of hosts to monitor | As a user, I want to manage the list of hosts | Provide page to add and delete hosts |
+|FR015| Alphabetical host sorting | As a user, I want hosts listed alphabetically | Host list sorted by name (case-insensitive) |
+|FR017| Host reachability status | As a user, I want to know if a host was reachable | Maintain IsReachable, LastCheckedUtc, LastReachableUtc; show status pill |
+|FR018| Filter unreachable hosts | As a user, I want to focus on unreachable hosts | Toggle filters host list to only unreachable ones |
+
+### C. Certificate Reporting & Presentation
+
+| ID | Description | User Story | Expected Behavior / Outcome |
+|----|-------------|------------|-----------------------------|
+|FR004| Certificate details should be shown | As a user, I want to see key certificate details | Display host, serial number, expiration date |
+|FR005| Reporting page should be tabular | As a user, I want tabular scan results | Present results in a table with clear headings |
+|FR006| Reporting table sorted by expiration | As a user, I want results sorted by days until expiration | Default sort ascending by days remaining |
+|FR009| Color code the results table | As a user, I want quick criticality cues | Apply color highlighting by days to expiration (≤30 red, 31–60 yellow) |
+|FR010| Show the dates in a nicer format | As a user, I want readable dates | Format dates MM/dd/yyyy (and times where applicable) |
+|FR014| Clickable host links | As a user, I want to open the host site quickly | Host names link to the host over HTTPS in a new tab |
+
+### D. User Interface / UX Enhancements
+
+| ID | Description | User Story | Expected Behavior / Outcome |
+|----|-------------|------------|-----------------------------|
+|FR011| Dark mode support | As a user, I want a dark mode | Provide toggle / detection switching theme |
+|FR012| Remember dark/light mode | As a user, I want my preference remembered | Persist selection (e.g., localStorage) and restore on load |
+|FR013| Dense tables | As a user, I want information-dense tables | Reduced padding for higher data density |
+|FR021| Sidebar dashboard navigation | As a user, I want quick return to dashboard | Sidebar includes Dashboard link highlighting at root |
+
+### E. Dashboard & Analytics
+
+| ID | Description | User Story | Expected Behavior / Outcome |
+|----|-------------|------------|-----------------------------|
+|FR020| Dashboard overview statistics | As a user, I want a summary dashboard | Root page shows: total hosts, certs tracked, expiring ≤30, expiring ≤60, unreachable hosts, last scan UTC, days since last scan (/api/stats) |
+
+### F. Status & Reachability (Cross-cutting)
+
+| ID | Description | User Story | Expected Behavior / Outcome |
+|----|-------------|------------|-----------------------------|
+|FR017| Host reachability status | As a user, I want to know if a host was reachable | (Duplicate reference) status fields maintained and displayed |
+|FR019| Scans update reachability fields | As a user, host status should reflect latest probe | (Duplicate reference) all scan entry points keep status fresh |
+
+> Note: FR017 and FR019 appear in both their primary sections and the cross‑cutting section for traceability.

@@ -1,0 +1,55 @@
+@page "/"
+@using Shared
+@inject HttpClient Http
+
+<h1>Certificate Monitor Overview</h1>
+
+@if (stats == null)
+{
+    <p>Loading statistics...</p>
+}
+else
+{
+    <div class="stats-grid">
+        <div class="stat-card crit">
+            <h2>@stats.ExpiringWithin30Days</h2>
+            <p>Expiring ≤ 30 Days</p>
+        </div>
+        <div class="stat-card warn">
+            <h2>@stats.ExpiringWithin60Days</h2>
+            <p>Expiring ≤ 60 Days</p>
+        </div>
+        <div class="stat-card">
+            <h2>@stats.UnreachableHosts</h2>
+            <p>Unreachable Hosts</p>
+        </div>
+        <div class="stat-card">
+            <h2>@stats.HostsMonitored</h2>
+            <p>Hosts Monitored</p>
+        </div>
+        <div class="stat-card">
+            <h2>@stats.CertificatesWithData</h2>
+            <p>Certificates Tracked</p>
+        </div>
+        <div class="stat-card">
+            <h2 class="nowrap">@(stats.LastScanUtc?.ToString("MM/dd/yy HH:mm") ?? "–")</h2>
+            <p>Last Scan (UTC)</p>
+        </div>
+        <div class="stat-card">
+            <h2>@(stats.DaysSinceLastScan?.ToString() ?? "–")</h2>
+            <p>Days Since Last Scan</p>
+        </div>
+    </div>
+    <div style="margin-top:2rem;">
+        <a href="/certificates">View Certificates →</a> | <a href="/hosts">Manage Hosts →</a>
+    </div>
+}
+
+@code {
+    private StatsDto? stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        stats = await Http.GetFromJsonAsync<StatsDto>("api/stats");
+    }
+}
