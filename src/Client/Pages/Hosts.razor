@@ -19,12 +19,23 @@ else if (hosts.Count == 0)
 }
 else
 {
-    <ul>
-        @foreach (var h in hosts)
+    <table>
+        <thead>
+            <tr>
+                <th>Host Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var h in hosts.OrderBy(h => h.HostName, StringComparer.OrdinalIgnoreCase))
         {
-            <li>@h.HostName <button @onclick="() => DeleteHost(h.Id)">Delete</button></li>
+            <tr>
+                <td>@h.HostName</td>
+                <td><button @onclick="() => DeleteHost(h.Id)">Delete</button></td>
+            </tr>
         }
-    </ul>
+        </tbody>
+    </table>
 }
 
 @code {

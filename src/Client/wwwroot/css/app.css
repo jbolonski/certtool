@@ -11,23 +11,55 @@ body {
 h3 {
     color: #6f2da8;
     font-weight: 700;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-    letter-spacing: 0.5px;
+th, td {
+    padding: 0.13rem 0.4rem;
+    text-align: left;
+}
+
+input[type="text"], input:not([type]), input[type="search"] {
+    background: #fff;
+    border: 2px solid #d1c4e9;
+    border-radius: 24px;
+    padding: 0.38rem 1rem;
+    font-size: 1rem;
+    color: #22223b;
+    box-shadow: 0 1px 4px rgba(111,45,168,0.04);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-right: 0.5rem;
+}
+input[type="text"]:focus, input:not([type]):focus, input[type="search"]:focus {
+    border-color: #6f2da8;
+    box-shadow: 0 0 0 2px #ede7f6;
+}
+
+/* Make add-host input and button inline and compact */
+.add-host {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
 }
 
 button {
     background: #6f2da8;
     color: #fff;
     border: none;
-    border-radius: 4px;
-    padding: 0.5rem 1.2rem;
+    border-radius: 24px;
+    padding: 0.38rem 1.3rem;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     margin-bottom: 1.5rem;
-    transition: background 0.2s;
-    box-shadow: 0 2px 6px rgba(111,45,168,0.08);
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(111,45,168,0.10);
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+}
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #a259e6;
+}
 }
 button:disabled {
     background: #b0b8c9;
@@ -49,8 +81,7 @@ table {
 thead {
     background: #ede7f6;
 }
-th, td {
-    padding: 0.85rem 1.1rem;
+    padding: 0.13rem 0.4rem;
     text-align: left;
 }
 th {
@@ -69,13 +100,13 @@ tr:last-child td {
 }
 
 tr.crit {
-    background-color: #f3e6fa !important; /* light purple */
+    background-color: #ffeaea !important; /* light red */
 }
 tr.warn {
-    background-color: #f8f3fc !important; /* lighter purple */
+    background-color: #fffbe5 !important; /* light yellow */
 }
 tr.ok {
-    background-color: #f7f6fb !important; /* background match */
+    background-color: #fff !important; /* white */
 }
 
 @media (max-width: 700px) {
