@@ -23,6 +23,7 @@ The functional requirements are grouped by domain area for clarity.
 |FR015| Alphabetical host sorting | As a user, I want hosts listed alphabetically | Host list sorted by name (case-insensitive) |
 |FR017| Host reachability status | As a user, I want to know if a host was reachable | Maintain IsReachable, LastCheckedUtc, LastReachableUtc; show status pill |
 |FR018| Filter unreachable hosts | As a user, I want to focus on unreachable hosts | Toggle filters host list to only unreachable ones |
+|FR022| Show next scheduled scan | As a user, I want to know when the next automatic scan will run | Hosts page displays next scheduled scan UTC timestamp (and last run) sourced from /api/schedule |
 
 ### C. Certificate Reporting & Presentation
 
@@ -56,5 +57,6 @@ The functional requirements are grouped by domain area for clarity.
 |----|-------------|------------|-----------------------------|
 |FR017| Host reachability status | As a user, I want to know if a host was reachable | (Duplicate reference) status fields maintained and displayed |
 |FR019| Scans update reachability fields | As a user, host status should reflect latest probe | (Duplicate reference) all scan entry points keep status fresh |
+|FR022| Show next scheduled scan | As a user, I want visibility of upcoming work | (Duplicate reference) expose last/next run via schedule service & /api/schedule, surface on Hosts page |
 
 > Note: FR017 and FR019 appear in both their primary sections and the cross‑cutting section for traceability.
