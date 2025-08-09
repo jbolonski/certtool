@@ -19,6 +19,9 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.HostName).HasColumnName("host_name").IsRequired().HasMaxLength(255);
             e.HasIndex(x => x.HostName).IsUnique();
+            e.Property(x => x.IsReachable).HasColumnName("is_reachable").HasColumnType("TINYINT(1)").HasDefaultValue(false);
+            e.Property(x => x.LastCheckedUtc).HasColumnName("last_checked_utc").HasColumnType("DATETIME(6)").IsRequired(false);
+            e.Property(x => x.LastReachableUtc).HasColumnName("last_reachable_utc").HasColumnType("DATETIME(6)").IsRequired(false);
             e.Property(x => x.CreatedAt)
                 .HasColumnName("created_at")
                 .HasColumnType("TIMESTAMP")

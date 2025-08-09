@@ -141,6 +141,11 @@ button:disabled { opacity:.55; cursor:not-allowed; }
 .mode-toggle { width:100%; justify-content:center; }
 .mode-toggle.inline { width:auto; }
 
+/* Status pills */
+.status-pill { display:inline-block; padding:.25rem .55rem; font-size:.6rem; letter-spacing:.5px; text-transform:uppercase; border-radius:999px; font-weight:600; background:var(--color-accent-soft); color:var(--color-text-soft); border:1px solid var(--color-border); }
+.status-pill.ok { background:linear-gradient(90deg,rgba(34,197,94,0.18),rgba(34,197,94,0.05)); color:#166534; border-color:rgba(34,197,94,0.35); }
+.status-pill.crit { background:linear-gradient(90deg,rgba(214,54,73,0.25),rgba(214,54,73,0.08)); color:#7f1d1d; border-color:rgba(214,54,73,0.45); }
+
 /* Forms */
 input[type=text], input[type=search] { width:100%; max-width:320px; background: var(--color-bg-alt); border:1px solid var(--color-border); border-radius: var(--radius-md); padding:.55rem .8rem; font-size:.8rem; color: var(--color-text); transition: border-color var(--transition), background var(--transition), box-shadow var(--transition); }
 input[type=text]:focus, input[type=search]:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb),0.25); outline:none; }

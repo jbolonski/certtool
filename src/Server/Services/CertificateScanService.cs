@@ -31,18 +31,21 @@ public class CertificateScanService : BackgroundService
         using var scope = _provider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var fetcher = scope.ServiceProvider.GetRequiredService<CertificateFetcher>();
-        var hosts = await db.Hosts.AsNoTracking().ToListAsync(ct);
+        var hosts = await db.Hosts.ToListAsync(ct); // tracked to update reachability
         _logger.LogInformation("Scanning {Count} hosts for certificates", hosts.Count);
         foreach (var h in hosts)
         {
             var result = await fetcher.FetchAsync(h.HostName, 443, ct);
-            if (result is { } r)
+            h.LastCheckedUtc = DateTime.UtcNow;
+            if (result is { } tuple)
             {
-                var (serial, notAfterUtc) = r;
-                // FR008: Remove any existing cert record for this host
-                var old = await db.Certificates.Where(c => c.HostId == h.Id).ToListAsync(ct);
-                if (old.Count > 0)
-                    db.Certificates.RemoveRange(old);
+                h.IsReachable = true;
+                h.LastReachableUtc = h.LastCheckedUtc;
+                var (serial, notAfterUtc) = tuple;
+                // Overwrite semantics only on successful fetch
+                var existing = await db.Certificates.Where(c => c.HostId == h.Id).ToListAsync(ct);
+                if (existing.Count > 0)
+                    db.Certificates.RemoveRange(existing);
                 db.Certificates.Add(new Entities.CertificateRecord
                 {
                     HostId = h.Id,
@@ -50,6 +53,10 @@ public class CertificateScanService : BackgroundService
                     ExpirationUtc = notAfterUtc,
                     RetrievedAtUtc = DateTime.UtcNow
                 });
+            }
+            else
+            {
+                h.IsReachable = false; // keep existing cert data if any; host just unreachable now
             }
         }
         await db.SaveChangesAsync(ct);

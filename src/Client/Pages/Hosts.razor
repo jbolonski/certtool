@@ -7,6 +7,9 @@
 <div class="add-host">
     <input placeholder="host.example.com" @bind="newHostName" />
     <button @onclick="AddHost" disabled="@(string.IsNullOrWhiteSpace(newHostName))">Add</button>
+    <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;">
+        <input type="checkbox" @bind="showOnlyUnreachable" /> Unreachable only
+    </label>
 </div>
 
 @if (hosts == null)
@@ -19,18 +22,29 @@ else if (hosts.Count == 0)
 }
 else
 {
+    var list = hosts
+        .OrderBy(h => h.HostName, StringComparer.OrdinalIgnoreCase)
+        .Where(h => !showOnlyUnreachable || !h.IsReachable)
+        .ToList();
     <table>
         <thead>
             <tr>
                 <th>Host Name</th>
+                <th>Status</th>
+                <th>Last Checked (UTC)</th>
+                <th>Last Reachable (UTC)</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
-        @foreach (var h in hosts.OrderBy(h => h.HostName, StringComparer.OrdinalIgnoreCase))
+        @foreach (var h in list)
         {
+            var statusClass = h.IsReachable ? "status-pill ok" : "status-pill crit";
             <tr>
                 <td>@h.HostName</td>
+                <td><span class="@statusClass">@(h.IsReachable ? "Reachable" : "Unreachable")</span></td>
+                <td>@(h.LastCheckedUtc?.ToString("MM/dd/yyyy HH:mm") ?? "–")</td>
+                <td>@(h.LastReachableUtc?.ToString("MM/dd/yyyy HH:mm") ?? "–")</td>
                 <td><button @onclick="() => DeleteHost(h.Id)">Delete</button></td>
             </tr>
         }
@@ -41,6 +55,7 @@ else
 @code {
     private List<HostDto>? hosts;
     private string? newHostName;
+    private bool showOnlyUnreachable;
 
     protected override async Task OnInitializedAsync()
     {
@@ -50,7 +65,7 @@ else
     private async Task AddHost()
     {
         if (string.IsNullOrWhiteSpace(newHostName)) return;
-        var resp = await Http.PostAsJsonAsync("api/hosts", new HostDto(0, newHostName.Trim()));
+    var resp = await Http.PostAsJsonAsync("api/hosts", new HostDto(0, newHostName.Trim(), false, null, null));
         if (resp.IsSuccessStatusCode)
         {
             hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
