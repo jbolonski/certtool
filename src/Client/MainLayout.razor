@@ -1,45 +1,88 @@
 @inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Routing
 @inject IJSRuntime JS
-<div class="sidebar">
-    <nav>
-        <a href="/certificates">Certificates</a> |
-        <a href="/hosts">Hosts</a>
-    </nav>
-</div>
-<div class="body">
-    <button class="dark-toggle" @onclick="ToggleDarkMode">@((isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"))</button>
-    @Body
+
+<div class="app-shell">
+    <aside class="app-nav">
+        <div class="brand">
+            <div class="brand-logo">🔐</div>
+            <div class="brand-text">
+                <span class="brand-title">Cert Monitor</span>
+                <span class="brand-year">2025</span>
+            </div>
+        </div>
+        <nav class="nav-links">
+            <NavLink href="/certificates" Match="NavLinkMatch.All" class="nav-item"><span class="nav-icon">📜</span><span>Certificates</span></NavLink>
+            <NavLink href="/hosts" class="nav-item"><span class="nav-icon">🖥️</span><span>Hosts</span></NavLink>
+        </nav>
+        <div class="nav-footer">
+            <button class="mode-toggle" @onclick="ToggleDarkMode" title="Toggle color mode">@((isDarkMode ? "☀ Light" : "🌙 Dark"))</button>
+        </div>
+    </aside>
+    <div class="app-main">
+        <header class="app-bar">
+            <div class="app-bar-left">
+                <h1 class="page-title">@currentTitle</h1>
+            </div>
+            <div class="app-bar-right">
+                <button class="mode-toggle inline" @onclick="ToggleDarkMode" title="Toggle color mode">@((isDarkMode ? "☀" : "🌙"))</button>
+            </div>
+        </header>
+        <main class="app-content">
+            <div class="content-inner">
+                @Body
+            </div>
+        </main>
+    </div>
 </div>
 
 @code {
-    private bool isDarkMode = false;
-
+    private bool isDarkMode;
+    private string currentTitle = "";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             var stored = await JS.InvokeAsync<string>("localStorage.getItem", "certtool-darkmode");
-            if (stored == "1")
-                isDarkMode = true;
-            else if (stored == "0")
-                isDarkMode = false;
+            isDarkMode = stored == "1" || (string.IsNullOrEmpty(stored) && await PrefersDark());
+            UpdateBodyClass();
+            DeriveTitle(NavigationManager?.Uri);
         }
-        SetBodyDarkClass();
+    }
+
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        DeriveTitle(NavigationManager?.Uri);
+    }
+
+    private void DeriveTitle(string? uri)
+    {
+        if (string.IsNullOrEmpty(uri)) { currentTitle = "Dashboard"; return; }
+        if (uri.EndsWith("/hosts", StringComparison.OrdinalIgnoreCase)) currentTitle = "Hosts";
+        else if (uri.EndsWith("/certificates", StringComparison.OrdinalIgnoreCase)) currentTitle = "Certificates";
+        else currentTitle = "Cert Monitor";
+    }
+
+    private async Task<bool> PrefersDark()
+    {
+        try { return await JS.InvokeAsync<bool>("matchMedia", "(prefers-color-scheme: dark)"); } catch { return false; }
     }
 
     private async void ToggleDarkMode()
     {
         isDarkMode = !isDarkMode;
         await JS.InvokeVoidAsync("localStorage.setItem", "certtool-darkmode", isDarkMode ? "1" : "0");
-        SetBodyDarkClass();
+        UpdateBodyClass();
     }
 
-    private async void SetBodyDarkClass()
+    private async void UpdateBodyClass()
     {
         if (isDarkMode)
-            await JS.InvokeVoidAsync("document.body.classList.add", "dark-mode");
+            await JS.InvokeVoidAsync("document.documentElement.classList.add", "dark-mode");
         else
-            await JS.InvokeVoidAsync("document.body.classList.remove", "dark-mode");
+            await JS.InvokeVoidAsync("document.documentElement.classList.remove", "dark-mode");
     }
 }
