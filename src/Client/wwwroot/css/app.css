@@ -1,13 +1,94 @@
-/*
-  Add or update this file in src/Client/wwwroot/css/app.css or similar location and ensure it is referenced in MainLayout.razor or index.html.
-*/
+/* Xfinity Purple Theme and Modern Font */
+
+body {
+    font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+    background: #f7f6fb;
+    color: #22223b;
+    margin: 0;
+    padding: 0;
+}
+
+h3 {
+    color: #6f2da8;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    letter-spacing: 0.5px;
+}
+
+button {
+    background: #6f2da8;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1.2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: background 0.2s;
+    box-shadow: 0 2px 6px rgba(111,45,168,0.08);
+}
+button:disabled {
+    background: #b0b8c9;
+    cursor: not-allowed;
+}
+button:hover:not(:disabled) {
+    background: #4b1c6b;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(111,45,168,0.07);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+thead {
+    background: #ede7f6;
+}
+th, td {
+    padding: 0.85rem 1.1rem;
+    text-align: left;
+}
+th {
+    color: #6f2da8;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-bottom: 2px solid #a259e6;
+    background: #ede7f6;
+}
+td {
+    font-size: 1rem;
+    border-bottom: 1px solid #f0f2f7;
+}
+tr:last-child td {
+    border-bottom: none;
+}
 
 tr.crit {
-    background-color: #ffcccc; /* light red */
+    background-color: #f3e6fa !important; /* light purple */
 }
 tr.warn {
-    background-color: #fff7cc; /* light yellow */
+    background-color: #f8f3fc !important; /* lighter purple */
 }
 tr.ok {
-    background-color: #eaffea; /* light green */
+    background-color: #f7f6fb !important; /* background match */
+}
+
+@media (max-width: 700px) {
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+    th, td {
+        padding: 0.7rem 0.5rem;
+    }
+    th {
+        border-bottom: none;
+    }
+    tr {
+        margin-bottom: 1.2rem;
+    }
 }
