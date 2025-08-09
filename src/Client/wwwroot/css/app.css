@@ -1,3 +1,84 @@
+/* Dark mode styles */
+.dark-mode, .dark-mode body, .dark-mode .body {
+    background: #181825 !important;
+    color: #e0e0e0 !important;
+}
+.dark-mode a {
+    color: #b983ff !important;
+    text-decoration: underline;
+}
+.dark-mode a:hover {
+    color: #fff !important;
+}
+.dark-mode h3 {
+    color: #b983ff !important;
+}
+.dark-mode input[type="text"], .dark-mode input:not([type]), .dark-mode input[type="search"] {
+    background: #23233a;
+    border: 2px solid #6f2da8;
+    color: #e0e0e0;
+}
+.dark-mode input[type="text"]:focus, .dark-mode input:not([type]):focus, .dark-mode input[type="search"]:focus {
+    border-color: #b983ff;
+    box-shadow: 0 0 0 2px #6f2da8;
+}
+.dark-mode button {
+    background: #6f2da8;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    box-shadow: 0 2px 8px rgba(111,45,168,0.18);
+}
+.dark-mode button:focus {
+    box-shadow: 0 0 0 2px #b983ff;
+}
+.dark-mode button:hover:not(:disabled) {
+    background: #a259e6;
+}
+.dark-mode table {
+    background: #23233a;
+    color: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(111,45,168,0.18);
+}
+.dark-mode thead, .dark-mode th {
+    background: #2a2342 !important;
+    color: #b983ff !important;
+    border-bottom: 2px solid #6f2da8;
+}
+.dark-mode td {
+    border-bottom: 1px solid #3a3a4d;
+}
+.dark-mode tr.crit {
+    background-color: #4b1c1c !important;
+    color: #ffb3b3 !important;
+}
+.dark-mode tr.warn {
+    background-color: #4b441c !important;
+    color: #fff7b3 !important;
+}
+.dark-mode tr.ok {
+    background-color: #23233a !important;
+    color: #e0e0e0 !important;
+}
+.dark-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 2rem;
+    z-index: 100;
+    background: #23233a;
+    color: #b983ff;
+    border: 2px solid #6f2da8;
+    border-radius: 24px;
+    padding: 0.3rem 1.1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.dark-toggle:hover {
+    background: #6f2da8;
+    color: #fff;
+}
 /* Xfinity Purple Theme and Modern Font */
 
 body {
