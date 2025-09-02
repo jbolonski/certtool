@@ -124,7 +124,8 @@ public class HostsController : ControllerBase
         // Simple RFC 1123-ish hostname validation (letters, digits, hyphens, dots), max 253 chars
         var hostRegex = new Regex("^(?=.{1,253}$)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(?:\\.([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*$", RegexOptions.Compiled);
 
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var addedEntities = new List<HostEntity>();
         var lines = content.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         for (int i = 0; i < lines.Length; i++)
         {
@@ -156,13 +157,47 @@ public class HostsController : ControllerBase
                 continue;
             }
 
-            _db.Hosts.Add(new HostEntity { HostName = host });
+            var entity = new HostEntity { HostName = host };
+            _db.Hosts.Add(entity);
+            addedEntities.Add(entity);
             added.Add(host);
         }
 
-        if (added.Count > 0)
+        // Persist new hosts to generate IDs
+        if (addedEntities.Count > 0) await _db.SaveChangesAsync(ct);
+
+        // FR024: Immediately scan newly imported hosts (best-effort; failures do not abort import)
+        foreach (var host in addedEntities)
         {
-            await _db.SaveChangesAsync(ct);
+            try
+            {
+                var fetchRes = await _fetcher.FetchAsync(host.HostName, 443, ct);
+                host.LastCheckedUtc = DateTime.UtcNow;
+                if (fetchRes is { } tuple)
+                {
+                    host.IsReachable = true;
+                    host.LastReachableUtc = host.LastCheckedUtc;
+                    var (serial, notAfterUtc) = tuple;
+                    var existing = await _db.Certificates.Where(c => c.HostId == host.Id).ToListAsync(ct);
+                    if (existing.Count > 0) _db.Certificates.RemoveRange(existing);
+                    _db.Certificates.Add(new CertificateRecord
+                    {
+                        HostId = host.Id,
+                        SerialNumber = serial,
+                        ExpirationUtc = notAfterUtc,
+                        RetrievedAtUtc = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    host.IsReachable = false;
+                }
+                await _db.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"BULK_CERT_FETCH_FAIL host={host.HostName} err={ex.Message}");
+            }
         }
 
         var result = new BulkImportResultDto(
