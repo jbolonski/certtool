@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Shared;
+using System.Text;
 
 namespace Server.Controllers;
 
@@ -36,6 +37,43 @@ public class CertificatesController : ControllerBase
                c.RetrievedAtUtc
            ));
            return Ok(list);
+    }
+
+    // FR025: Export certificate report as CSV
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportCsv()
+    {
+        var certs = await _db.Certificates
+            .Include(c => c.Host)
+            .OrderBy(c => c.ExpirationUtc)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+        var sb = new StringBuilder();
+        // Header
+        sb.AppendLine("Host,Serial,ExpirationUtc,DaysUntilExpiration,RetrievedAtUtc");
+
+        foreach (var c in certs)
+        {
+            var days = (int)Math.Floor(c.ExpirationUtc > now ? (c.ExpirationUtc - now).TotalDays : 0);
+            // Use ISO 8601 UTC for CSV stability
+            string Esc(string s) => "\"" + s.Replace("\"", "\"\"") + "\"";
+            var line = string.Join(",",
+                new[]
+                {
+                    Esc(c.Host.HostName),
+                    Esc(c.SerialNumber ?? string.Empty),
+                    Esc(c.ExpirationUtc.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")),
+                    days.ToString(),
+                    Esc(c.RetrievedAtUtc.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))
+                });
+            sb.AppendLine(line);
+        }
+
+        var csv = sb.ToString();
+        var bytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes(csv); // include BOM for Excel
+        var fileName = $"certificates-{DateTime.UtcNow:yyyyMMdd}.csv";
+        return File(bytes, "text/csv", fileName);
     }
 
     // FR007: Manual refresh endpoint

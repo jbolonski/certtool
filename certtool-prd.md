@@ -37,6 +37,7 @@ The functional requirements are grouped by domain area for clarity.
 |FR009| Color code the results table | As a user, I want quick criticality cues | Apply color highlighting by days to expiration (≤30 red, 31–60 yellow) |
 |FR010| Show the dates in a nicer format | As a user, I want readable dates | Format dates MM/dd/yyyy (and times where applicable) |
 |FR014| Clickable host links | As a user, I want to open the host site quickly | Host names link to the host over HTTPS in a new tab |
+|FR025| Export Report as CSV | AS a user, I want to be able to export the Certificate reporting table as a CSV file | Ablity to export results for sharing |
 
 ### D. User Interface / UX Enhancements
 

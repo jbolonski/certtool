@@ -5,6 +5,9 @@
 
 <h3>Certificate Expirations</h3>
 <button @onclick="ManualRefresh" disabled="@refreshing">@((refreshing ? "Refreshing..." : "Refresh"))</button>
+<a href="api/certificates/export" style="margin-left:.5rem;" download>
+    Export CSV
+</a>
 
 @if (certs == null)
 {
