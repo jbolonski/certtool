@@ -24,6 +24,8 @@ The functional requirements are grouped by domain area for clarity.
 |FR017| Host reachability status | As a user, I want to know if a host was reachable | Maintain IsReachable, LastCheckedUtc, LastReachableUtc; show status pill |
 |FR018| Filter unreachable hosts | As a user, I want to focus on unreachable hosts | Toggle filters host list to only unreachable ones |
 |FR022| Show next scheduled scan | As a user, I want to know when the next automatic scan will run | Hosts page displays next scheduled scan UTC timestamp (and last run) sourced from /api/schedule |
+|FR023| Bulk import hosts from file | As a user, I want to import hosts from a text file (one host per line) | Hosts page supports uploading a .txt file with one host per line; trims whitespace; skips blank lines and duplicates; validates hostnames; imports new hosts; shows an import summary (added/skipped/errors) |
+|FR024| Bulk import hosts should be scanned | As a user, I want the hosts imported from a bulk process to be scanned after importing| New entries are immediately updated |
 
 ### C. Certificate Reporting & Presentation
 
