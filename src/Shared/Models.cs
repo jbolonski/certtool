@@ -11,3 +11,13 @@ public record StatsDto(
 	DateTime? LastScanUtc,
 	int? DaysSinceLastScan);
 public record ScanScheduleDto(DateTime? LastRunUtc, DateTime? NextRunUtc, int IntervalHours);
+
+// Bulk import DTOs
+public record BulkImportErrorDto(int LineNumber, string Value, string Reason);
+public record BulkImportResultDto(
+	int AddedCount,
+	int SkippedCount,
+	int ErrorCount,
+	List<string> AddedHosts,
+	List<string> SkippedHosts,
+	List<BulkImportErrorDto> Errors);

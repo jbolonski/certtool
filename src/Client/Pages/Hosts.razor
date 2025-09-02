@@ -1,5 +1,7 @@
 @page "/hosts"
 @using Shared
+@using Microsoft.AspNetCore.Components.Forms
+@using System.IO
 @inject HttpClient Http
 
 <h3>Hosts</h3>
@@ -20,6 +22,32 @@
     <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;">
         <input type="checkbox" @bind="showOnlyUnreachable" /> Unreachable only
     </label>
+</div>
+
+<div class="bulk-import" style="margin: .75rem 0; padding: .5rem; border: 1px dashed var(--color-border); border-radius: .4rem;">
+    <h4 style="margin:.1rem 0 .4rem 0;">Bulk import</h4>
+    <p style="margin:.2rem 0 .6rem 0; font-size:.85rem; color:var(--color-text-soft);">Upload a .txt file with one host per line. Blank lines and lines starting with # are ignored.</p>
+    <InputFile OnChange="OnFileSelected" accept=".txt,text/plain" />
+    <button @onclick="ImportFile" disabled="@(uploadFile is null || isImporting)" style="margin-left:.5rem;">@(isImporting ? "Importing..." : "Import")</button>
+    @if (importResult is not null)
+    {
+        <div style="margin-top:.5rem; font-size:.85rem;">
+            <strong>Import summary:</strong>
+            <div>Added: @importResult.AddedCount, Skipped: @importResult.SkippedCount, Errors: @importResult.ErrorCount</div>
+            @if (importResult.Errors?.Count > 0)
+            {
+                <details style="margin-top:.25rem;">
+                    <summary>Show errors</summary>
+                    <ul>
+                        @foreach (var e in importResult.Errors)
+                        {
+                            <li>Line @e.LineNumber: "@e.Value" - @e.Reason</li>
+                        }
+                    </ul>
+                </details>
+            }
+        </div>
+    }
 </div>
 
 @if (hosts == null)
@@ -67,6 +95,9 @@ else
     private string? newHostName;
     private bool showOnlyUnreachable;
     private ScanScheduleDto? schedule;
+    private IBrowserFile? uploadFile;
+    private bool isImporting;
+    private BulkImportResultDto? importResult;
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,6 +122,42 @@ else
         if (resp.IsSuccessStatusCode)
         {
             hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
+        }
+    }
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        uploadFile = e.File;
+        importResult = null;
+    }
+
+    private async Task ImportFile()
+    {
+        if (uploadFile is null) return;
+        isImporting = true;
+        importResult = null;
+        try
+        {
+            using var stream = uploadFile.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024); // 2 MB
+            using var reader = new StreamReader(stream);
+            var text = await reader.ReadToEndAsync();
+
+            var req = new StringContent(text);
+            req.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/plain");
+            var resp = await Http.PostAsync("api/hosts/import", req);
+            if (resp.IsSuccessStatusCode)
+            {
+                importResult = await resp.Content.ReadFromJsonAsync<BulkImportResultDto>();
+                hosts = await Http.GetFromJsonAsync<List<HostDto>>("api/hosts");
+            }
+            else
+            {
+                importResult = new BulkImportResultDto(0, 0, 1, new List<string>(), new List<string>(), new List<BulkImportErrorDto> { new BulkImportErrorDto(0, "", $"Import failed: {resp.StatusCode}") });
+            }
+        }
+        finally
+        {
+            isImporting = false;
         }
     }
 }

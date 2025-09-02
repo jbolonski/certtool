@@ -4,6 +4,7 @@ using Server.Data;
 using Server.Entities;
 using HostEntity = Server.Entities.Host;
 using Shared;
+using System.Text.RegularExpressions;
 
 namespace Server.Controllers;
 
@@ -101,5 +102,77 @@ public class HostsController : ControllerBase
             Console.Error.WriteLine($"HOST_DELETE_FAIL hostId={id} err={ex.Message}");
             return StatusCode(500, "Failed to delete host");
         }
+    }
+
+    // POST api/hosts/import
+    // Accepts text/plain where each line contains a single host. Trims whitespace, ignores blanks and '#'-style comments.
+    // Skips duplicates and already-existing hosts. Performs simple hostname validation.
+    [HttpPost("import")]
+    public async Task<ActionResult<BulkImportResultDto>> Import(CancellationToken ct)
+    {
+        string content;
+        using (var reader = new StreamReader(Request.Body))
+        {
+            content = await reader.ReadToEndAsync();
+        }
+        if (content == null) return BadRequest("No content provided");
+
+        var added = new List<string>();
+        var skipped = new List<string>();
+        var errors = new List<BulkImportErrorDto>();
+
+        // Simple RFC 1123-ish hostname validation (letters, digits, hyphens, dots), max 253 chars
+        var hostRegex = new Regex("^(?=.{1,253}$)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(?:\\.([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*$", RegexOptions.Compiled);
+
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var lines = content.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var raw = lines[i];
+            var lineNo = i + 1;
+            var trimmed = raw?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(trimmed)) { continue; }
+            if (trimmed.StartsWith("#")) { continue; }
+
+            // Normalize to lowercase for storage/compare but keep original for reporting
+            var host = trimmed;
+
+            if (!hostRegex.IsMatch(host))
+            {
+                errors.Add(new BulkImportErrorDto(lineNo, trimmed, "Invalid hostname format"));
+                continue;
+            }
+
+            if (!seen.Add(host))
+            {
+                skipped.Add(host);
+                continue;
+            }
+
+            // Skip if exists
+            if (await _db.Hosts.AnyAsync(h => h.HostName == host, ct))
+            {
+                skipped.Add(host);
+                continue;
+            }
+
+            _db.Hosts.Add(new HostEntity { HostName = host });
+            added.Add(host);
+        }
+
+        if (added.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+
+        var result = new BulkImportResultDto(
+            AddedCount: added.Count,
+            SkippedCount: skipped.Count,
+            ErrorCount: errors.Count,
+            AddedHosts: added,
+            SkippedHosts: skipped,
+            Errors: errors);
+
+        return Ok(result);
     }
 }
